@@ -71,11 +71,14 @@ namespace YLunch.Application.Tests
         [Fact]
         public async Task GetAsCustomerById_Should_Return_A_Customer_Based_On_Input_Id()
         {
+            // Arrange
             var id = context.Users.First().Id;
-            var expected = context.Users.First().Id;
 
+            // Act
             var result = (await userService.GetAsCustomerById(id)).Id;
 
+            // Assert
+            var expected = context.Users.First().Id;
             Assert.Equal(expected, result);
         }
     }
