@@ -11,8 +11,6 @@ namespace YLunch.Application.Tests
             var options = new DbContextOptionsBuilder<ApplicationDbContext>()
                 .UseInMemoryDatabase(databaseName: $"YLunchDatabase-{Guid.NewGuid()}")
                 .Options;
-
-            // Insert seed data into the database using one instance of the context
             return new ApplicationDbContext(options);
         }
     }
