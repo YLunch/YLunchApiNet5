@@ -13,6 +13,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using YLunch.Api.Core.Response;
 using YLunch.Api.Core.Response.Errors;
+using YLunch.Application.Exceptions;
 using YLunch.Domain.DTO.UserModels;
 using YLunch.Domain.DTO.UserModels.Registration;
 using YLunch.Domain.ModelsAggregate.UserAggregate;
@@ -151,7 +152,7 @@ namespace YLunch.Api.Controllers
         private async Task CheckUserNonexistence(string username)
         {
             var userExists = await _userManager.FindByNameAsync(username);
-            if (userExists != null) throw new Exception("User already exists");
+            if (userExists != null) throw new UserAlreadyExistsException();
         }
 
         private async Task<IActionResult> RegisterUser<T>(T model) where T : UserCreationDto
