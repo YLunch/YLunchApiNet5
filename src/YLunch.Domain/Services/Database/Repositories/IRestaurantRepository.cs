@@ -10,10 +10,10 @@ namespace YLunch.Domain.Services.Database.Repositories
         Task Create(Restaurant restaurant);
         Task Update();
         Task<Restaurant> GetById(string id);
-        Task<Restaurant> GetByUserId(string currentUserId);
+        Task<Restaurant> GetByUserId(string id);
         Task<ICollection<RestaurantCategory>> GetAllRestaurantCategories();
         Task<ICollection<Restaurant>> GetAllForCustomer();
         Task<ICollection<Restaurant>> GetAll();
-        Task<Restaurant> GetByIdIncludingProducts(string modelId);
+        Task<Restaurant> GetByIdIncludingProducts(string id);
     }
 }
