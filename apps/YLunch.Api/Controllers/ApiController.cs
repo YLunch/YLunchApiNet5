@@ -13,7 +13,7 @@ namespace YLunch.Api.Controllers
     [Route("api")]
     public class ApiController : CustomControllerBase
     {
-        private const string API_RUNNING_MESSAGE = "Api is running test organization";
+        private const string API_RUNNING_MESSAGE = "Api is running organization";
 
         private static readonly string API_RUNNING_AS_AUTHENTICATED_MESSAGE =
             $"{API_RUNNING_MESSAGE}, and you're authenticated";
