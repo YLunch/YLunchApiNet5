@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using YLunch.Domain.ModelsAggregate.CustomerAggregate;
 using YLunch.Domain.ModelsAggregate.UserAggregate;
 
 namespace YLunch.Application.Tests.Mocks
