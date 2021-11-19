@@ -10,7 +10,7 @@ using YLunch.Domain.Services.Database.Repositories;
 
 namespace YLunch.Api.Controllers
 {
-    [Route("api")]
+    [Route("[controller]")]
     public class ApiController : CustomControllerBase
     {
         private const string API_RUNNING_MESSAGE = "Api is running organization";
@@ -26,31 +26,31 @@ namespace YLunch.Api.Controllers
         {
         }
 
-        [HttpGet("try")]
+        [HttpGet]
         [AllowAnonymous]
         public string Try() => API_RUNNING_MESSAGE;
 
-        [HttpGet("try-authenticated")]
+        [HttpGet("authenticated")]
         [Core.Authorize]
         public string TryAsAuthenticated() => API_RUNNING_AS_AUTHENTICATED_MESSAGE;
 
-        [HttpGet("try-authenticated-superAdmin")]
+        [HttpGet("authenticated-superAdmin")]
         [Core.Authorize(UserRoles.SuperAdmin)]
         public string TryAsAuthenticatedSuperAdmin() =>
             $"{API_RUNNING_MESSAGE}, and you're a {UserRoles.SuperAdmin}";
 
 
-        [HttpGet("try-authenticated-restaurantAdmin")]
+        [HttpGet("authenticated-restaurantAdmin")]
         [Core.Authorize(UserRoles.RestaurantAdmin)]
         public string TryAsAuthenticatedRestaurantAdmin() =>
             $"{API_RUNNING_MESSAGE}, and you're a {UserRoles.RestaurantAdmin}";
 
-        [HttpGet("try-authenticated-employee")]
+        [HttpGet("authenticated-employee")]
         [Core.Authorize(UserRoles.Employee)]
         public string TryAsAuthenticatedEmployee() =>
             $"{API_RUNNING_MESSAGE}, and you're a {UserRoles.Employee}";
 
-        [HttpGet("try-authenticated-customer")]
+        [HttpGet("authenticated-customer")]
         [Core.Authorize(UserRoles.Customer)]
         public string TryAsAuthenticatedCustomer() =>
             $"{API_RUNNING_MESSAGE}, and you're a {UserRoles.Customer}";
