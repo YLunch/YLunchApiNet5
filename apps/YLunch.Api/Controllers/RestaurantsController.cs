@@ -18,13 +18,13 @@ namespace YLunch.Api.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class RestaurantController : CustomControllerBase
+    public class RestaurantsController : CustomControllerBase
     {
         private readonly IRestaurantService _restaurantService;
         private readonly IRestaurantRepository _restaurantRepository;
         private readonly IUserService _userService;
 
-        public RestaurantController(
+        public RestaurantsController(
             UserManager<User> userManager,
             IUserRepository userRepository,
             IConfiguration configuration,
@@ -38,7 +38,7 @@ namespace YLunch.Api.Controllers
             _userService = userService;
         }
 
-        [HttpPost("create")]
+        [HttpPost]
         [Authorize(Roles = UserRoles.RestaurantAdmin)]
         public async Task<IActionResult> Create([FromBody] RestaurantCreationDto model)
         {
@@ -65,7 +65,7 @@ namespace YLunch.Api.Controllers
             }
         }
 
-        [HttpPatch("update")]
+        [HttpPatch]
         [Authorize(Roles = UserRoles.RestaurantAdmin)]
         public async Task<IActionResult> Update([FromBody] RestaurantModificationDto model)
         {
@@ -101,7 +101,7 @@ namespace YLunch.Api.Controllers
             }
         }
 
-        [HttpGet("get-mine")]
+        [HttpGet("mine")]
         [Authorize(Roles = UserRoles.RestaurantAdmin)]
         public async Task<IActionResult> Get()
         {
@@ -123,49 +123,11 @@ namespace YLunch.Api.Controllers
             }
         }
 
-        [HttpGet("get-customer-details/{customerId}")]
-        [Authorize(Roles = UserRoles.RestaurantAdmin + "," + UserRoles.Employee)]
-        public async Task<IActionResult> GetCustomerDetails(string customerId)
+        [HttpGet]
+        [Authorize(Roles = UserRoles.SuperAdmin)]
+        public async Task<IActionResult> GetAllRestaurants()
         {
-            try
-            {
-                var customer = await _userService.GetCustomerById(customerId);
-                return Ok(customer);
-            }
-            catch (NotFoundException e)
-            {
-                return NotFound(e.Message);
-            }
-            catch (Exception e)
-            {
-                return StatusCode(
-                    StatusCodes.Status500InternalServerError,
-                    e
-                );
-            }
-        }
-
-        [HttpGet("get-today-orders")]
-        [Authorize(Roles = UserRoles.RestaurantAdmin + "," + UserRoles.Employee)]
-        public async Task<IActionResult> GetTodayOrders()
-        {
-            try
-            {
-                var currentUser = await GetAuthenticatedUser();
-                var orderReadDtoCollection = await _restaurantService.GetTodayOrders(currentUser.RestaurantUser.RestaurantId);
-                return Ok(orderReadDtoCollection);
-            }
-            catch (NotFoundException e)
-            {
-                return NotFound(e.Message);
-            }
-            catch (Exception e)
-            {
-                return StatusCode(
-                    StatusCodes.Status500InternalServerError,
-                    e
-                );
-            }
+            return Ok(await _restaurantService.GetAllRestaurants());
         }
     }
 }

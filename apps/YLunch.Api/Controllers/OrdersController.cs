@@ -13,26 +13,31 @@ using YLunch.Domain.ModelsAggregate.UserAggregate;
 using YLunch.Domain.ModelsAggregate.UserAggregate.Roles;
 using YLunch.Domain.Services.Database.Repositories;
 using YLunch.Domain.Services.OrderServices;
+using YLunch.Domain.Services.RestaurantServices;
 
 namespace YLunch.Api.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class OrderController : CustomControllerBase
+    public class OrdersController : CustomControllerBase
     {
         private readonly IOrderService _orderService;
+        private readonly IRestaurantService _restaurantService;
 
-        public OrderController(
+
+        public OrdersController(
             UserManager<User> userManager,
             IUserRepository userRepository,
             IConfiguration configuration,
-            IOrderService orderService
+            IOrderService orderService,
+            IRestaurantService restaurantService
         ) : base(userManager, userRepository, configuration)
         {
             _orderService = orderService;
+            _restaurantService = restaurantService;
         }
 
-        [HttpPost("create")]
+        [HttpPost]
         [Authorize(Roles = UserRoles.Customer)]
         public async Task<IActionResult> Create([FromBody] OrderCreationDto orderCreationDto)
         {
@@ -52,7 +57,7 @@ namespace YLunch.Api.Controllers
             }
         }
 
-        [HttpPost("add-status-to-orders")]
+        [HttpPost("add-status")]
         [Authorize(Roles = UserRoles.RestaurantAdmin + "," + UserRoles.Employee)]
         public async Task<IActionResult> AddStatusToMultipleOrders(
             [FromBody] AddOrderStatusToMultipleOrdersDto addOrderStatusToMultipleOrdersDto)
@@ -73,7 +78,7 @@ namespace YLunch.Api.Controllers
             }
         }
 
-        [HttpGet("get-new-orders-ids")]
+        [HttpGet("news")]
         [Authorize(Roles = UserRoles.RestaurantAdmin + "," + UserRoles.Employee)]
         public async Task<IActionResult> GetNewOrdersIds()
         {
@@ -89,6 +94,30 @@ namespace YLunch.Api.Controllers
             catch (Exception e)
             {
                 return StatusCode(StatusCodes.Status500InternalServerError, e.Message);
+            }
+        }
+
+        [HttpGet("today")]
+        [Authorize(Roles = UserRoles.RestaurantAdmin + "," + UserRoles.Employee)]
+        public async Task<IActionResult> GetTodayOrders()
+        {
+            try
+            {
+                var currentUser = await GetAuthenticatedUser();
+                var orderReadDtoCollection =
+                    await _restaurantService.GetTodayOrders(currentUser.RestaurantUser.RestaurantId);
+                return Ok(orderReadDtoCollection);
+            }
+            catch (NotFoundException e)
+            {
+                return NotFound(e.Message);
+            }
+            catch (Exception e)
+            {
+                return StatusCode(
+                    StatusCodes.Status500InternalServerError,
+                    e
+                );
             }
         }
     }

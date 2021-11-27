@@ -11,15 +11,10 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
-using YLunch.Api.Core.Response;
 using YLunch.Api.Core.Response.Errors;
-using YLunch.Application.Exceptions;
-using YLunch.Domain.DTO.UserModels.Registration;
-using YLunch.Domain.ModelsAggregate.UserAggregate;
-using YLunch.Domain.ModelsAggregate.UserAggregate.Roles;
 using YLunch.Domain.DTO.UserModels;
+using YLunch.Domain.ModelsAggregate.UserAggregate;
 using YLunch.Domain.Services.Database.Repositories;
-using YLunch.Domain.Services.Registration;
 
 namespace YLunch.Api.Controllers
 {
@@ -27,21 +22,18 @@ namespace YLunch.Api.Controllers
     [ApiController]
     public class AuthenticationController : CustomControllerBase
     {
-        private readonly IRegistrationService _registrationService;
         private readonly UserManager<User> _userManager;
 
         public AuthenticationController(
             UserManager<User> userManager,
             IUserRepository userRepository,
-            IConfiguration configuration,
-            IRegistrationService registrationService
+            IConfiguration configuration
         ) : base(userManager, userRepository, configuration)
         {
             _userManager = userManager;
-            _registrationService = registrationService;
         }
 
-        [HttpPost("login")]
+        [HttpPost]
         [AllowAnonymous]
         public async Task<IActionResult> Login([FromBody] UserLoginDto model)
         {
@@ -75,68 +67,8 @@ namespace YLunch.Api.Controllers
             });
         }
 
-        [HttpPost("init-super-admin")]
-        public async Task<IActionResult> InitSuperAdmin([FromBody] InitSuperAdminDto model)
-        {
-            if (model.EndpointPassword != Configuration["InitAdminPass"])
-                return Unauthorized();
-
-            return await RegisterUser(model.User);
-        }
-
-        [HttpPost("register-super-admin")]
-        [Core.Authorize(Roles = UserRoles.SuperAdmin)]
-        public async Task<IActionResult> RegisterSuperAdmin([FromBody] SuperAdminCreationDto model)
-        {
-            return await RegisterUser(model);
-        }
-
-        [HttpPost("register-restaurantOwner")]
-        [AllowAnonymous]
-        public async Task<IActionResult> RegisterRestaurantOwner([FromBody] RestaurantOwnerCreationDto model)
-        {
-            return await RegisterUser(model);
-        }
-
-        [HttpPost("register-restaurantAdmin")]
-        [Core.Authorize(Roles = UserRoles.RestaurantAdmin)]
-        public async Task<IActionResult> RegisterRestaurantAdmin([FromBody] RestaurantAdminCreationDto model)
-        {
-            var currentUser = await GetAuthenticatedUser();
-            var restaurantId = currentUser.RestaurantUser.RestaurantId;
-            model.RestaurantId = restaurantId;
-            return await RegisterUser(model);
-        }
-
-        [HttpPost("register-restaurant-employee")]
-        [Core.Authorize(Roles = UserRoles.RestaurantAdmin)]
-        public async Task<IActionResult> RegisterRestaurantEmployee([FromBody] EmployeeCreationDto model)
-        {
-            var currentUser = await GetAuthenticatedUser();
-            var restaurantId = currentUser.RestaurantUser.RestaurantId;
-            model.RestaurantId = restaurantId;
-            return await RegisterUser(model);
-        }
-
-        [HttpPost("register-customer")]
-        [AllowAnonymous]
-        public async Task<IActionResult> RegisterCustomer([FromBody] CustomerCreationDto model)
-        {
-            // Todo valid username based on company's email template
-            if (!model.IsValid())
-                return StatusCode(
-                    StatusCodes.Status403Forbidden,
-                    new Response
-                    {
-                        Status = ResponseStatus.Error,
-                        Message = "You must set a username with an Ynov email address"
-                    }
-                );
-            return await RegisterUser(model);
-        }
-
+        [HttpGet]
         [Core.Authorize]
-        [HttpGet("current-user")]
         public async Task<ActionResult<UserReadDto>> GetCurrentUser()
         {
             var currentUser = await GetAuthenticatedUserDto();
@@ -147,44 +79,6 @@ namespace YLunch.Api.Controllers
                 );
 
             return currentUser;
-        }
-
-        private async Task CheckUserNonexistence(string username)
-        {
-            var userExists = await _userManager.FindByNameAsync(username);
-            if (userExists != null) throw new UserAlreadyExistsException();
-        }
-
-        private async Task<IActionResult> RegisterUser(UserCreationDto userCreationDto)
-        {
-            try
-            {
-                await CheckUserNonexistence(userCreationDto.UserName);
-            }
-            catch (Exception e)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError,
-                    new Response {Status = ResponseStatus.Error, Message = e.Message});
-            }
-
-            try
-            {
-                var userDto = await _registrationService.Register(userCreationDto);
-
-                return StatusCode(
-                    StatusCodes.Status201Created,
-                    userDto
-                );
-            }
-            catch (Exception)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError,
-                    new Response
-                    {
-                        Status = ResponseStatus.Error,
-                        Message = "User creation failed! Please check user details and try again."
-                    });
-            }
         }
     }
 }
