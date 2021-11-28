@@ -6,6 +6,7 @@ using YLunch.Application.Exceptions;
 using YLunch.Domain.DTO.OrderModels;
 using YLunch.Domain.DTO.OrderModels.OrderStatusModels;
 using YLunch.Domain.ModelsAggregate.CustomerAggregate;
+using YLunch.Domain.ModelsAggregate.OrderAggregate;
 using YLunch.Domain.ModelsAggregate.RestaurantAggregate;
 using YLunch.Domain.Services.Database.Repositories;
 using YLunch.Domain.Services.OrderServices;
@@ -71,6 +72,14 @@ namespace YLunch.Application.Services
         public async Task<ICollection<OrderReadDto>> GetNewOrdersByRestaurantId(string restaurantId)
         {
             var orders = await _orderRepository.GetNewOrdersByRestaurantId(restaurantId);
+            return orders
+                .Select(x => new OrderReadDto(x))
+                .ToList();
+        }
+
+        public async Task<ICollection<OrderReadDto>> GetAll(OrdersFilter ordersFilter)
+        {
+            var orders = await _orderRepository.GetAll(ordersFilter);
             return orders
                 .Select(x => new OrderReadDto(x))
                 .ToList();

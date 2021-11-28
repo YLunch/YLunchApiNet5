@@ -15,8 +15,9 @@ namespace YLunch.Domain.Services.RestaurantServices
         Task UpdateIsPublished(string restaurantId);
         Task<RestaurantReadDto> GetById(string id);
         Task<RestaurantReadDto> GetByUserId(string currentUserId);
-        Task<ICollection<RestaurantReadDto>> GetAllForCustomer();
-        Task<ICollection<RestaurantReadDto>> GetAllRestaurants();
-        Task<ICollection<OrderReadDto>> GetTodayOrders(string restaurantId);
+        Task<ICollection<RestaurantReadDto>> GetAllForCustomer(RestaurantsFilter restaurantsFilter);
+        Task<ICollection<RestaurantReadDto>> GetAll(RestaurantsFilter restaurantsFilter);
+        Task DeleteById(string id);
+        Task<RestaurantReadDto> GetByIdForCustomer(string id);
     }
 }

@@ -9,11 +9,12 @@ using YLunch.Api.Core;
 using YLunch.Application.Exceptions;
 using YLunch.Domain.DTO.OrderModels;
 using YLunch.Domain.DTO.OrderModels.OrderStatusModels;
+using YLunch.Domain.ModelsAggregate.OrderAggregate;
 using YLunch.Domain.ModelsAggregate.UserAggregate;
 using YLunch.Domain.ModelsAggregate.UserAggregate.Roles;
 using YLunch.Domain.Services.Database.Repositories;
 using YLunch.Domain.Services.OrderServices;
-using YLunch.Domain.Services.RestaurantServices;
+using YLunch.DomainShared.RestaurantAggregate.Enums;
 
 namespace YLunch.Api.Controllers
 {
@@ -22,19 +23,15 @@ namespace YLunch.Api.Controllers
     public class OrdersController : CustomControllerBase
     {
         private readonly IOrderService _orderService;
-        private readonly IRestaurantService _restaurantService;
-
 
         public OrdersController(
             UserManager<User> userManager,
             IUserRepository userRepository,
             IConfiguration configuration,
-            IOrderService orderService,
-            IRestaurantService restaurantService
+            IOrderService orderService
         ) : base(userManager, userRepository, configuration)
         {
             _orderService = orderService;
-            _restaurantService = restaurantService;
         }
 
         [HttpPost]
@@ -49,7 +46,7 @@ namespace YLunch.Api.Controllers
             }
             catch (NotFoundException e)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, e.Message);
+                return StatusCode(StatusCodes.Status404NotFound, e.Message);
             }
             catch (Exception e)
             {
@@ -57,7 +54,7 @@ namespace YLunch.Api.Controllers
             }
         }
 
-        [HttpPost("add-status")]
+        [HttpPost("statuses")]
         [Authorize(Roles = UserRoles.RestaurantAdmin + "," + UserRoles.Employee)]
         public async Task<IActionResult> AddStatusToMultipleOrders(
             [FromBody] AddOrderStatusToMultipleOrdersDto addOrderStatusToMultipleOrdersDto)
@@ -68,57 +65,37 @@ namespace YLunch.Api.Controllers
                     await _orderService.AddStatusToMultipleOrders(addOrderStatusToMultipleOrdersDto);
                 return Ok(orderReadDtoCollection);
             }
-            catch (BadNewOrderStateException e)
+            catch (BadNewOrderStateException badNewOrderStateException)
             {
-                return StatusCode(StatusCodes.Status403Forbidden, e.Message);
+                return StatusCode(StatusCodes.Status403Forbidden, badNewOrderStateException.Message);
             }
-            catch (Exception e1)
+            catch (Exception exception)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, e1.Message);
-            }
-        }
-
-        [HttpGet("news")]
-        [Authorize(Roles = UserRoles.RestaurantAdmin + "," + UserRoles.Employee)]
-        public async Task<IActionResult> GetNewOrdersIds()
-        {
-            try
-            {
-                var currentUser = await GetAuthenticatedUser();
-                var orderReadDtoCollection =
-                    await _orderService.GetNewOrdersByRestaurantId(currentUser.RestaurantUser.RestaurantId);
-                return Ok(orderReadDtoCollection
-                    .Select(x => x.Id)
-                    .ToList());
-            }
-            catch (Exception e)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError, e.Message);
+                return StatusCode(StatusCodes.Status500InternalServerError, exception.Message);
             }
         }
 
-        [HttpGet("today")]
-        [Authorize(Roles = UserRoles.RestaurantAdmin + "," + UserRoles.Employee)]
-        public async Task<IActionResult> GetTodayOrders()
+        [HttpGet]
+        [Authorize(Roles = UserRoles.SuperAdmin + "," + UserRoles.RestaurantAdmin + "," + UserRoles.Employee)]
+        public async Task<IActionResult> GetOrders([FromQuery] OrderState? status, [FromQuery] DateTime? afterDateTime,
+            [FromQuery] string restaurantId)
         {
-            try
+            var currentUser = await GetAuthenticatedUser();
+            if (currentUser == null)
             {
-                var currentUser = await GetAuthenticatedUser();
-                var orderReadDtoCollection =
-                    await _restaurantService.GetTodayOrders(currentUser.RestaurantUser.RestaurantId);
-                return Ok(orderReadDtoCollection);
+                return StatusCode(StatusCodes.Status404NotFound, "Current User not found");
             }
-            catch (NotFoundException e)
+
+            var ordersFilter = new OrdersFilter
             {
-                return NotFound(e.Message);
-            }
-            catch (Exception e)
-            {
-                return StatusCode(
-                    StatusCodes.Status500InternalServerError,
-                    e
-                );
-            }
+                AfterDateTime = afterDateTime,
+                Status = status,
+                RestaurantId = await IsCurrentUserSuperAdmin() ? restaurantId : currentUser.RestaurantUser.RestaurantId
+            };
+
+            var orderReadDtoCollection =
+                await _orderService.GetAll(ordersFilter);
+            return Ok(orderReadDtoCollection.ToList());
         }
     }
 }

@@ -11,39 +11,39 @@ using YLunch.Domain.ModelsAggregate.UserAggregate;
 using YLunch.Domain.ModelsAggregate.UserAggregate.Roles;
 using YLunch.Domain.Services.Database.Repositories;
 using YLunch.Domain.Services.RestaurantServices;
+using YLunch.Domain.Services.UserServices;
 
 namespace YLunch.Api.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class CustomerController : CustomControllerBase
+    public class CustomersController : CustomControllerBase
     {
-        private readonly IRestaurantService _restaurantService;
+        private readonly IUserService _userService;
 
-        public CustomerController(
+        public CustomersController(
             UserManager<User> userManager,
+            IUserService userService,
             IUserRepository userRepository,
-            IConfiguration configuration,
-            IRestaurantService restaurantService
+            IConfiguration configuration
         ) : base(userManager, userRepository, configuration)
         {
-            _restaurantService = restaurantService;
+            _userService = userService;
         }
 
-        [HttpGet("get-all-restaurants")]
-        [AllowAnonymous]
-        public async Task<IActionResult> GetAllRestaurants()
+
+        [HttpGet("{customerId}")]
+        [Core.Authorize(Roles = UserRoles.RestaurantAdmin + "," + UserRoles.Employee)]
+        public async Task<IActionResult> GetCustomerDetails(string customerId)
         {
             try
             {
-                return Ok(await _restaurantService.GetAllForCustomer());
+                var customer = await _userService.GetCustomerById(customerId);
+                return Ok(customer);
             }
-            catch (Exception e)
+            catch (NotFoundException e)
             {
-                return StatusCode(
-                    StatusCodes.Status500InternalServerError,
-                    e
-                );
+                return NotFound(e.Message);
             }
         }
     }

@@ -11,7 +11,8 @@ namespace YLunch.Api.Core
         public AuthorizeAttribute(string roles)
         {
             if (!roles.Contains(UserRoles.SuperAdmin))
-                Roles = UserRoles.SuperAdmin + "," + roles;
+                Roles = UserRoles.SuperAdmin + ",";
+            Roles += roles;
         }
 
         public AuthorizeAttribute()

@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Internal;
+using YLunch.Application.Exceptions;
 using YLunch.Domain.ModelsAggregate.UserAggregate;
 using YLunch.Domain.ModelsAggregate.UserAggregate.Roles;
 using YLunch.Domain.Services.Database.Repositories;
@@ -77,8 +78,14 @@ namespace YLunch.Infrastructure.Database.Repositories
             return user;
         }
 
-        public async Task Delete(User user)
+        public async Task DeleteByUsername(string username)
         {
+
+            var user = await GetFullUser(username);
+            if (user is null)
+            {
+                throw new NotFoundException($"User with username: '{username}' not found");
+            }
             _context.Users.Remove(user);
             await _context.SaveChangesAsync();
         }

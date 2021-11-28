@@ -9,9 +9,7 @@ namespace YLunch.Domain.DTO.OrderModels
         [Required] public ICollection<string> ProductsId { get; set; }
         public string CustomerComment { get; set; }
         public string RestaurantComment { get; set; }
-        [Required]
-        public DateTime ReservedForDateTime { get; set; }
-        [Required]
-        public string RestaurantId { get; set; }
+        [Required] public DateTime ReservedForDateTime { get; set; }
+        [Required] public string RestaurantId { get; set; }
     }
 }

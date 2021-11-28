@@ -1,18 +1,18 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
-using YLunch.Api.Core;
 using YLunch.Application.Exceptions;
 using YLunch.Domain.DTO.RestaurantModels;
+using YLunch.Domain.ModelsAggregate.RestaurantAggregate;
 using YLunch.Domain.ModelsAggregate.UserAggregate;
 using YLunch.Domain.ModelsAggregate.UserAggregate.Roles;
 using YLunch.Domain.Services.Database.Repositories;
 using YLunch.Domain.Services.RestaurantServices;
-using YLunch.Domain.Services.UserServices;
 
 namespace YLunch.Api.Controllers
 {
@@ -22,24 +22,21 @@ namespace YLunch.Api.Controllers
     {
         private readonly IRestaurantService _restaurantService;
         private readonly IRestaurantRepository _restaurantRepository;
-        private readonly IUserService _userService;
 
         public RestaurantsController(
             UserManager<User> userManager,
             IUserRepository userRepository,
             IConfiguration configuration,
             IRestaurantService restaurantService,
-            IRestaurantRepository restaurantRepository,
-            IUserService userService
+            IRestaurantRepository restaurantRepository
         ) : base(userManager, userRepository, configuration)
         {
             _restaurantService = restaurantService;
             _restaurantRepository = restaurantRepository;
-            _userService = userService;
         }
 
         [HttpPost]
-        [Authorize(Roles = UserRoles.RestaurantAdmin)]
+        [Core.Authorize(Roles = UserRoles.RestaurantAdmin)]
         public async Task<IActionResult> Create([FromBody] RestaurantCreationDto model)
         {
             try
@@ -65,10 +62,16 @@ namespace YLunch.Api.Controllers
             }
         }
 
-        [HttpPatch]
-        [Authorize(Roles = UserRoles.RestaurantAdmin)]
-        public async Task<IActionResult> Update([FromBody] RestaurantModificationDto model)
+        [HttpPatch("{id}")]
+        [Core.Authorize(Roles = UserRoles.RestaurantAdmin)]
+        public async Task<IActionResult> Update([FromRoute] string id, [FromBody] RestaurantModificationDto model)
         {
+            if (id != model.Id)
+            {
+                return StatusCode(StatusCodes.Status403Forbidden,
+                    "Id in query doesn't match restaurantId in body");
+            }
+
             try
             {
                 var currentUser = await GetAuthenticatedUser();
@@ -102,7 +105,7 @@ namespace YLunch.Api.Controllers
         }
 
         [HttpGet("mine")]
-        [Authorize(Roles = UserRoles.RestaurantAdmin)]
+        [Core.Authorize(Roles = UserRoles.RestaurantAdmin)]
         public async Task<IActionResult> Get()
         {
             try
@@ -124,10 +127,46 @@ namespace YLunch.Api.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = UserRoles.SuperAdmin)]
-        public async Task<IActionResult> GetAllRestaurants()
+        [AllowAnonymous]
+        public async Task<IActionResult> GetAll([FromQuery] bool? isPublic)
         {
-            return Ok(await _restaurantService.GetAllRestaurants());
+            var restaurantsFilter = new RestaurantsFilter { IsPublished = isPublic };
+            return Ok(await IsCurrentUserSuperAdmin()
+                ? await _restaurantService.GetAll(restaurantsFilter)
+                : await _restaurantService.GetAllForCustomer(restaurantsFilter));
+        }
+
+        [HttpGet("{id}")]
+        [AllowAnonymous]
+        public async Task<IActionResult> Get(string id)
+        {
+            try
+            {
+                var restaurant = await IsCurrentUserSuperAdmin()
+                    ? await _restaurantService.GetById(id)
+                    : await _restaurantService.GetByIdForCustomer(id);
+                return Ok(restaurant);
+            }
+            catch (NotFoundException)
+            {
+                return StatusCode(StatusCodes.Status404NotFound, $"Restaurant {id} not found");
+            }
+        }
+
+        [HttpDelete("{id}")]
+        [Core.Authorize(Roles = UserRoles.SuperAdmin)]
+        public async Task<IActionResult> Delete(string id)
+        {
+            try
+            {
+                await _restaurantService.DeleteById(id);
+            }
+            catch (NotFoundException notFoundException)
+            {
+                return StatusCode(StatusCodes.Status404NotFound, notFoundException.Message);
+            }
+
+            return NoContent();
         }
     }
 }

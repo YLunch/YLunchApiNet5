@@ -34,12 +34,7 @@ namespace YLunch.Application.Services
 
         public async Task DeleteUserByUsername(string username)
         {
-            var user = await _userRepository.GetFullUser(username);
-            if (user is null)
-            {
-                throw new NotFoundException($"User with username: '{username}' not found");
-            }
-            await _userRepository.Delete(user);
+            await _userRepository.DeleteByUsername(username);
         }
     }
 }

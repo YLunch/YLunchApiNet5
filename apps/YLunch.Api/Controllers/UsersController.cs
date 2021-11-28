@@ -104,28 +104,6 @@ namespace YLunch.Api.Controllers
             return Ok(await _userService.GetAllUsers());
         }
 
-        [HttpGet("{customerId}")]
-        [Core.Authorize(Roles = UserRoles.RestaurantAdmin + "," + UserRoles.Employee)]
-        public async Task<IActionResult> GetCustomerDetails(string customerId)
-        {
-            try
-            {
-                var customer = await _userService.GetCustomerById(customerId);
-                return Ok(customer);
-            }
-            catch (NotFoundException e)
-            {
-                return NotFound(e.Message);
-            }
-            catch (Exception e)
-            {
-                return StatusCode(
-                    StatusCodes.Status500InternalServerError,
-                    e
-                );
-            }
-        }
-
         [HttpDelete("{username}")]
         [Authorize(Roles = UserRoles.SuperAdmin)]
         public async Task<IActionResult> DeleteUserByUsername(string username)
@@ -135,10 +113,10 @@ namespace YLunch.Api.Controllers
                 await _userService.DeleteUserByUsername(username);
                 return NoContent();
             }
-            catch (Exception e)
+            catch (Exception exception)
             {
                 return StatusCode(StatusCodes.Status500InternalServerError,
-                    new Response { Status = ResponseStatus.Error, Message = e.Message });
+                    new Response { Status = ResponseStatus.Error, Message = exception.Message });
             }
         }
 

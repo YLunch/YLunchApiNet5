@@ -10,6 +10,6 @@ namespace YLunch.Domain.Services.Database.Repositories
         Task<User> GetFullUser(string username);
         Task<ICollection<User>> GetFullUsers();
         Task<User> GetCustomerById(string id);
-        Task Delete(User user);
+        Task DeleteByUsername(string username);
     }
 }

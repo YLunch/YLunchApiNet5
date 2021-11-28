@@ -15,15 +15,12 @@ namespace YLunch.Application.Services
     public class RestaurantService : IRestaurantService
     {
         private readonly IRestaurantRepository _restaurantRepository;
-        private readonly IOrderRepository _orderRepository;
 
         public RestaurantService(
-            IRestaurantRepository restaurantRepository,
-            IOrderRepository orderRepository
+            IRestaurantRepository restaurantRepository
         )
         {
             _restaurantRepository = restaurantRepository;
-            _orderRepository = orderRepository;
         }
 
         public async Task<RestaurantReadDto> GetById(string id)
@@ -39,22 +36,31 @@ namespace YLunch.Application.Services
             return new RestaurantReadDto(restaurant);
         }
 
-        public async Task<ICollection<RestaurantReadDto>> GetAllForCustomer()
+        public async Task<ICollection<RestaurantReadDto>> GetAllForCustomer(RestaurantsFilter restaurantsFilter)
         {
-            var restaurants = await _restaurantRepository.GetAllForCustomer();
+            var restaurants = await _restaurantRepository.GetAllForCustomer(restaurantsFilter);
             return restaurants.Select(x => new RestaurantReadDto(x)).ToList();
         }
 
-        public async Task<ICollection<RestaurantReadDto>> GetAllRestaurants()
+        public async Task<ICollection<RestaurantReadDto>> GetAll(RestaurantsFilter restaurantsFilter)
         {
-            var restaurants = await _restaurantRepository.GetAll();
+            var restaurants = await _restaurantRepository.GetAll(restaurantsFilter);
             return restaurants.Select(x => new RestaurantReadDto(x)).ToList();
         }
 
-        public async Task<ICollection<OrderReadDto>> GetTodayOrders(string restaurantId)
+        public async Task DeleteById(string id)
         {
-            var orders = await _orderRepository.GetAllByRestaurantId(restaurantId);
-            return orders.Select(x => new OrderReadDto(x)).ToList();
+            await _restaurantRepository.DeleteById(id);
+        }
+
+        public async Task<RestaurantReadDto> GetByIdForCustomer(string id)
+        {
+            var restaurant = await _restaurantRepository.GetByIdForCustomer(id);
+            if (restaurant == null)
+            {
+                throw new NotFoundException($"Restaurant {id} not found or not published");
+            }
+            return new RestaurantReadDto(restaurant);
         }
 
         public async Task<RestaurantReadDto> Create(RestaurantCreationDto restaurantCreationDto, CurrentUser currentUser)

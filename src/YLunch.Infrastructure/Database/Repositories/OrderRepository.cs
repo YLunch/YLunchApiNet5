@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using YLunch.Domain.ModelsAggregate.OrderAggregate;
 using YLunch.Domain.ModelsAggregate.RestaurantAggregate;
 using YLunch.Domain.Services.OrderServices;
 using YLunch.DomainShared.RestaurantAggregate.Enums;
@@ -31,7 +32,19 @@ namespace YLunch.Infrastructure.Database.Repositories
                 .Include(x => x.CustomerProducts)
                 .Where(o => o.RestaurantId.Equals(restaurantId))
                 .Where(o => o.CreationDateTime > DateTime.Today)
-                .OrderBy(o=>o.ReservedForDateTime)
+                .OrderBy(o => o.ReservedForDateTime)
+                .ToListAsync();
+        }
+
+        public async Task<ICollection<Order>> GetAll(OrdersFilter filter)
+        {
+            return await _context.Orders
+                .Include(x => x.OrderStatuses)
+                .Include(x => x.CustomerProducts)
+                .Where(o => filter.RestaurantId == null || o.RestaurantId == filter.RestaurantId)
+                .Where(x => filter.Status == null || x.OrderStatuses.All(y => y.State == filter.Status))
+                .Where(o => filter.AfterDateTime == null || o.CreationDateTime > filter.AfterDateTime)
+                .OrderBy(o => o.ReservedForDateTime)
                 .ToListAsync();
         }
 
@@ -52,7 +65,7 @@ namespace YLunch.Infrastructure.Database.Repositories
             return await _context.Orders
                 .Include(x => x.OrderStatuses)
                 .Where(o => ordersIds.Contains(o.Id))
-                .OrderBy(o=>o.ReservedForDateTime)
+                .OrderBy(o => o.ReservedForDateTime)
                 .ToListAsync();
         }
 
@@ -62,7 +75,7 @@ namespace YLunch.Infrastructure.Database.Repositories
                 .Include(x => x.OrderStatuses)
                 .Where(x => x.RestaurantId.Equals(restaurantId))
                 .Where(x => x.OrderStatuses.All(y => y.State == OrderState.Idling))
-                .OrderBy(o=>o.ReservedForDateTime)
+                .OrderBy(o => o.ReservedForDateTime)
                 .ToListAsync();
         }
     }
