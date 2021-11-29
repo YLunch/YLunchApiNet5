@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using YLunch.Domain.ModelsAggregate.UserAggregate;
 
-namespace YLunch.Domain.Services.Database.Repositories
+namespace YLunch.Domain.Repositories
 {
     public interface IUserRepository
     {

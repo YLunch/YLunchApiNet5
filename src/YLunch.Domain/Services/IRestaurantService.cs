@@ -1,11 +1,10 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using YLunch.Domain.DTO.OrderModels;
 using YLunch.Domain.DTO.RestaurantModels;
 using YLunch.Domain.DTO.UserModels;
 using YLunch.Domain.ModelsAggregate.RestaurantAggregate;
 
-namespace YLunch.Domain.Services.RestaurantServices
+namespace YLunch.Domain.Services
 {
     public interface IRestaurantService
     {

@@ -8,8 +8,8 @@ using YLunch.Domain.DTO.OrderModels.OrderStatusModels;
 using YLunch.Domain.ModelsAggregate.CustomerAggregate;
 using YLunch.Domain.ModelsAggregate.OrderAggregate;
 using YLunch.Domain.ModelsAggregate.RestaurantAggregate;
-using YLunch.Domain.Services.Database.Repositories;
-using YLunch.Domain.Services.OrderServices;
+using YLunch.Domain.Repositories;
+using YLunch.Domain.Services;
 using YLunch.DomainShared.RestaurantAggregate.Enums;
 
 namespace YLunch.Application.Services

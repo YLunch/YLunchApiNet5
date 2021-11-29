@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Internal;
 using YLunch.Application.Exceptions;
 using YLunch.Domain.ModelsAggregate.UserAggregate;
 using YLunch.Domain.ModelsAggregate.UserAggregate.Roles;
-using YLunch.Domain.Services.Database.Repositories;
+using YLunch.Domain.Repositories;
 using YLunch.Infrastructure.Database.Exceptions;
 
 namespace YLunch.Infrastructure.Database.Repositories

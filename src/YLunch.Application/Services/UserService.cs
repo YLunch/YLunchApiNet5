@@ -4,8 +4,8 @@ using System.Threading.Tasks;
 using YLunch.Application.Exceptions;
 using YLunch.Domain.DTO.UserModels;
 using YLunch.Domain.ModelsAggregate.UserAggregate;
-using YLunch.Domain.Services.Database.Repositories;
-using YLunch.Domain.Services.UserServices;
+using YLunch.Domain.Repositories;
+using YLunch.Domain.Services;
 
 namespace YLunch.Application.Services
 {

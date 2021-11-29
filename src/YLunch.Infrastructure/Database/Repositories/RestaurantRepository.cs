@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query;
 using YLunch.Application.Exceptions;
 using YLunch.Domain.ModelsAggregate.RestaurantAggregate;
-using YLunch.Domain.Services.Database.Repositories;
+using YLunch.Domain.Repositories;
 
 namespace YLunch.Infrastructure.Database.Repositories
 {

@@ -14,7 +14,7 @@ using Microsoft.IdentityModel.Tokens;
 using YLunch.Api.Core.Response.Errors;
 using YLunch.Domain.DTO.UserModels;
 using YLunch.Domain.ModelsAggregate.UserAggregate;
-using YLunch.Domain.Services.Database.Repositories;
+using YLunch.Domain.Repositories;
 
 namespace YLunch.Api.Controllers
 {

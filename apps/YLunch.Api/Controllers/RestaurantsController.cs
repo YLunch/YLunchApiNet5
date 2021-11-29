@@ -7,12 +7,13 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using YLunch.Application.Exceptions;
+using YLunch.Domain.DTO.ProductModels.RestaurantProductModels;
 using YLunch.Domain.DTO.RestaurantModels;
 using YLunch.Domain.ModelsAggregate.RestaurantAggregate;
 using YLunch.Domain.ModelsAggregate.UserAggregate;
 using YLunch.Domain.ModelsAggregate.UserAggregate.Roles;
-using YLunch.Domain.Services.Database.Repositories;
-using YLunch.Domain.Services.RestaurantServices;
+using YLunch.Domain.Repositories;
+using YLunch.Domain.Services;
 
 namespace YLunch.Api.Controllers
 {
@@ -22,17 +23,20 @@ namespace YLunch.Api.Controllers
     {
         private readonly IRestaurantService _restaurantService;
         private readonly IRestaurantRepository _restaurantRepository;
+        private readonly IRestaurantProductService _restaurantProductService;
 
         public RestaurantsController(
             UserManager<User> userManager,
             IUserRepository userRepository,
             IConfiguration configuration,
             IRestaurantService restaurantService,
-            IRestaurantRepository restaurantRepository
+            IRestaurantRepository restaurantRepository,
+            IRestaurantProductService restaurantProductService
         ) : base(userManager, userRepository, configuration)
         {
             _restaurantService = restaurantService;
             _restaurantRepository = restaurantRepository;
+            _restaurantProductService = restaurantProductService;
         }
 
         [HttpPost]
@@ -104,28 +108,6 @@ namespace YLunch.Api.Controllers
             }
         }
 
-        [HttpGet("mine")]
-        [Core.Authorize(Roles = UserRoles.RestaurantAdmin)]
-        public async Task<IActionResult> Get()
-        {
-            try
-            {
-                var currentUser = await GetAuthenticatedUser();
-                return Ok(await _restaurantService.GetByUserId(currentUser.Id));
-            }
-            catch (NotFoundException e)
-            {
-                return NotFound(e.Message);
-            }
-            catch (Exception e)
-            {
-                return StatusCode(
-                    StatusCodes.Status500InternalServerError,
-                    e
-                );
-            }
-        }
-
         [HttpGet]
         [AllowAnonymous]
         public async Task<IActionResult> GetAll([FromQuery] bool? isPublic)
@@ -153,6 +135,28 @@ namespace YLunch.Api.Controllers
             }
         }
 
+        [HttpGet("mine")]
+        [Core.Authorize(Roles = UserRoles.RestaurantAdmin)]
+        public async Task<IActionResult> Get()
+        {
+            try
+            {
+                var currentUser = await GetAuthenticatedUser();
+                return Ok(await _restaurantService.GetByUserId(currentUser.Id));
+            }
+            catch (NotFoundException e)
+            {
+                return NotFound(e.Message);
+            }
+            catch (Exception e)
+            {
+                return StatusCode(
+                    StatusCodes.Status500InternalServerError,
+                    e
+                );
+            }
+        }
+
         [HttpDelete("{id}")]
         [Core.Authorize(Roles = UserRoles.SuperAdmin)]
         public async Task<IActionResult> Delete(string id)
@@ -167,6 +171,71 @@ namespace YLunch.Api.Controllers
             }
 
             return NoContent();
+        }
+
+        [HttpPost("{restaurantId}")]
+        [Authorize(Roles = UserRoles.SuperAdmin)]
+        public async Task<IActionResult> CreateProduct(
+            [FromRoute] string restaurantId,
+            [FromBody] RestaurantProductCreationDto model
+        )
+        {
+            var restaurant = await _restaurantService.GetById(restaurantId);
+            if (restaurant == null)
+            {
+                return StatusCode(StatusCodes.Status404NotFound, $"Restaurant {restaurantId} not found");
+            }
+
+            var restaurantProduct =
+                await _restaurantProductService.Create(model, restaurantId);
+            return Ok(restaurantProduct);
+        }
+
+        [AllowAnonymous]
+        [HttpGet("{restaurantId}/restaurant-products")]
+        public async Task<IActionResult> GetProducts(
+            [FromRoute] string restaurantId,
+            [FromQuery] int? quantityMin,
+            [FromQuery] int? quantityMax,
+            [FromQuery] bool? isActive
+        )
+        {
+            var restaurantProductsFilter = new RestaurantProductsFilter
+            {
+                QuantityMin = quantityMin,
+                QuantityMax = quantityMax,
+                IsActive = isActive,
+                RestaurantId = restaurantId
+            };
+            var restaurantProducts =
+                await _restaurantProductService.GetAll(restaurantProductsFilter);
+
+            return Ok(restaurantProducts);
+        }
+
+        [AllowAnonymous]
+        [HttpGet("{restaurantId}/restaurant-products/{restaurantProductId}")]
+        public async Task<IActionResult> GetProduct(string restaurantId, string restaurantProductId)
+        {
+            var restaurantProduct =
+                await _restaurantProductService.GetById(restaurantProductId);
+            if (restaurantProduct == null)
+            {
+                return StatusCode(
+                    StatusCodes.Status404NotFound,
+                    $"Product {restaurantProductId} not found"
+                );
+            }
+
+            if (restaurantProduct.RestaurantId != restaurantId)
+            {
+                return StatusCode(
+                    StatusCodes.Status404NotFound,
+                    $"Product {restaurantProductId} not found in restaurant {restaurantId}"
+                );
+            }
+
+            return Ok(restaurantProduct);
         }
     }
 }

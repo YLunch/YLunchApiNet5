@@ -1,11 +1,9 @@
-using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using YLunch.Domain.ModelsAggregate.OrderAggregate;
 using YLunch.Domain.ModelsAggregate.RestaurantAggregate;
 
-namespace YLunch.Domain.Services.OrderServices
+namespace YLunch.Domain.Repositories
 {
     public interface IOrderRepository
     {

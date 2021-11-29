@@ -9,19 +9,19 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using YLunch.Domain.ModelsAggregate.UserAggregate;
 using YLunch.Domain.ModelsAggregate.UserAggregate.Roles;
-using YLunch.Domain.Services.Database.Repositories;
+using YLunch.Domain.Repositories;
 
 namespace YLunch.Api.Controllers
 {
-    [Route("[controller]")]
-    public class ApiController : CustomControllerBase
+    [Route("api/[controller]")]
+    public class TrialsController : CustomControllerBase
     {
-        private const string API_RUNNING_MESSAGE = "Api is running organization";
+        private const string API_RUNNING_MESSAGE = "Api is running";
 
         private static readonly string API_RUNNING_AS_AUTHENTICATED_MESSAGE =
             $"{API_RUNNING_MESSAGE}, and you're authenticated";
 
-        public ApiController(
+        public TrialsController(
             UserManager<User> userManager,
             IUserRepository userRepository,
             IConfiguration configuration

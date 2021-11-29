@@ -10,7 +10,7 @@ using YLunch.Application.Services;
 using YLunch.Application.Tests.Mocks;
 using YLunch.Domain.DTO.UserModels;
 using YLunch.Domain.ModelsAggregate.UserAggregate;
-using YLunch.Domain.Services.UserServices;
+using YLunch.Domain.Services;
 using YLunch.Infrastructure.Database;
 using YLunch.Infrastructure.Database.Repositories;
 

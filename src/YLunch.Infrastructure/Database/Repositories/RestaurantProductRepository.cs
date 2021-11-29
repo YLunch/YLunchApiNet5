@@ -3,7 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using YLunch.Domain.ModelsAggregate.RestaurantAggregate;
-using YLunch.Domain.Services.Database.Repositories;
+using YLunch.Domain.Repositories;
 
 namespace YLunch.Infrastructure.Database.Repositories
 {
@@ -27,19 +27,23 @@ namespace YLunch.Infrastructure.Database.Repositories
             await _context.SaveChangesAsync();
         }
 
-        public async Task<ICollection<RestaurantProduct>> GetAllByRestaurantId(string restaurantId)
+        public async Task<ICollection<RestaurantProduct>> GetAll(RestaurantProductsFilter restaurantProductsFilter)
         {
             return await _context.RestaurantProducts
-                .Where(x => x.RestaurantId.Equals(restaurantId))
+                .Where(x => restaurantProductsFilter.RestaurantId == null ||
+                            x.RestaurantId == restaurantProductsFilter.RestaurantId)
+                .Where(x => restaurantProductsFilter.IsActive == null ||
+                            x.IsActive == restaurantProductsFilter.IsActive)
+                .Where(x => restaurantProductsFilter.QuantityMin == null ||
+                            x.Quantity >= restaurantProductsFilter.QuantityMin)
+                .Where(x => restaurantProductsFilter.QuantityMax == null ||
+                            x.Quantity <= restaurantProductsFilter.QuantityMax)
                 .ToListAsync();
         }
 
-        public async Task<ICollection<RestaurantProduct>> GetAllForCustomerByRestaurantId(string restaurantId)
+        public async Task<RestaurantProduct> GetById(string restaurantProductId)
         {
-            return await _context.RestaurantProducts
-                .Where(x => x.RestaurantId.Equals(restaurantId))
-                .Where(x => x.IsActive)
-                .ToListAsync();
+            return await _context.RestaurantProducts.FindAsync(restaurantProductId);
         }
 
         public async Task Delete(string restaurantProductId)
@@ -50,15 +54,16 @@ namespace YLunch.Infrastructure.Database.Repositories
             await _context.SaveChangesAsync();
         }
 
-        public async Task<ICollection<RestaurantProduct>> GetAllEligibleForCustomerByRestaurantIdByProductIds(ICollection<string> orderedRestaurantProductsIds,
+        public async Task<ICollection<RestaurantProduct>> GetAllEligibleForCustomerByRestaurantIdByProductIds(
+            ICollection<string> orderedRestaurantProductsIds,
             string restaurantId)
         {
             var restaurantProducts =
-                await GetAllForCustomerByRestaurantId(restaurantId);
+                await GetAll(new RestaurantProductsFilter { RestaurantId = restaurantId, IsActive = true });
 
             return orderedRestaurantProductsIds
-                .Where(id => restaurantProducts.Any(rp=> rp.Id.Equals(id)))
-                .Select(id=> _context.RestaurantProducts.Find(id))
+                .Where(id => restaurantProducts.Any(rp => rp.Id.Equals(id)))
+                .Select(id => _context.RestaurantProducts.Find(id))
                 .ToList();
         }
     }

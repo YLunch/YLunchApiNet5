@@ -3,8 +3,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using YLunch.Domain.DTO.ProductModels.RestaurantProductModels;
 using YLunch.Domain.ModelsAggregate.RestaurantAggregate;
-using YLunch.Domain.Services.Database.Repositories;
-using YLunch.Domain.Services.RestaurantServices;
+using YLunch.Domain.Repositories;
+using YLunch.Domain.Services;
 
 namespace YLunch.Application.Services
 {
@@ -44,21 +44,21 @@ namespace YLunch.Application.Services
             return new RestaurantProductReadDto(restaurantProduct);
         }
 
-        public async Task<ICollection<RestaurantProductReadDto>> GetAllByRestaurantId(string restaurantId)
+        public async Task<ICollection<RestaurantProductReadDto>> GetAll(RestaurantProductsFilter restaurantProductsFilter)
         {
-            var restaurantProducts = await _restaurantProductRepository.GetAllByRestaurantId(restaurantId);
-            return restaurantProducts.Select(x => new RestaurantProductReadDto(x)).ToList();
-        }
-
-        public async Task<ICollection<RestaurantProductReadDto>> GetAllForCustomerByRestaurantId(string restaurantId)
-        {
-            var restaurantProducts = await _restaurantProductRepository.GetAllForCustomerByRestaurantId(restaurantId);
+            var restaurantProducts = await _restaurantProductRepository.GetAll(restaurantProductsFilter);
             return restaurantProducts.Select(x => new RestaurantProductReadDto(x)).ToList();
         }
 
         public async Task Delete(string restaurantProductId)
         {
             await _restaurantProductRepository.Delete(restaurantProductId);
+        }
+
+        public async Task<RestaurantProductReadDto> GetById(string restaurantProductId)
+        {
+            var restaurantProduct = await _restaurantProductRepository.GetById(restaurantProductId);
+            return new RestaurantProductReadDto(restaurantProduct);
         }
     }
 }

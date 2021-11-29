@@ -10,9 +10,8 @@ using YLunch.Application.Exceptions;
 using YLunch.Domain.DTO.UserModels.Registration;
 using YLunch.Domain.ModelsAggregate.UserAggregate;
 using YLunch.Domain.ModelsAggregate.UserAggregate.Roles;
-using YLunch.Domain.Services.Database.Repositories;
-using YLunch.Domain.Services.Registration;
-using YLunch.Domain.Services.UserServices;
+using YLunch.Domain.Repositories;
+using YLunch.Domain.Services;
 
 namespace YLunch.Api.Controllers
 {

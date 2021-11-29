@@ -7,7 +7,7 @@ using YLunch.Application.Exceptions;
 using YLunch.Domain.DTO.UserModels;
 using YLunch.Domain.ModelsAggregate.UserAggregate;
 using YLunch.Domain.ModelsAggregate.UserAggregate.Roles;
-using YLunch.Domain.Services.Database.Repositories;
+using YLunch.Domain.Repositories;
 
 namespace YLunch.Api.Controllers
 {

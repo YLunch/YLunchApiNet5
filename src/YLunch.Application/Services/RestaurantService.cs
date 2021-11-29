@@ -6,9 +6,8 @@ using YLunch.Domain.DTO.OrderModels;
 using YLunch.Domain.DTO.RestaurantModels;
 using YLunch.Domain.DTO.UserModels;
 using YLunch.Domain.ModelsAggregate.RestaurantAggregate;
-using YLunch.Domain.Services.Database.Repositories;
-using YLunch.Domain.Services.OrderServices;
-using YLunch.Domain.Services.RestaurantServices;
+using YLunch.Domain.Repositories;
+using YLunch.Domain.Services;
 
 namespace YLunch.Application.Services
 {
