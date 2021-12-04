@@ -69,9 +69,9 @@ namespace YLunch.Api.Controllers
 
         [HttpGet]
         [Core.Authorize]
-        public async Task<ActionResult<UserReadDto>> GetCurrentUser()
+        public async Task<ActionResult<CurrentUser>> GetCurrentUser()
         {
-            var currentUser = await GetAuthenticatedUserDto();
+            var currentUser = await GetAuthenticatedUser();
             if (currentUser == null)
                 return StatusCode(
                     StatusCodes.Status500InternalServerError,
