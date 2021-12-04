@@ -74,18 +74,22 @@ namespace YLunch.Infrastructure.Database.Repositories
             var user = await _context.Users
                 .Include(x => x.Customer)
                 .FirstOrDefaultAsync(x => x.Id.Equals(id));
+            if (user == null)
+            {
+                throw new NotFoundException($"User {id} not found");
+            }
 
             return user;
         }
 
         public async Task DeleteByUsername(string username)
         {
-
             var user = await GetFullUser(username);
             if (user is null)
             {
                 throw new NotFoundException($"User with username: '{username}' not found");
             }
+
             _context.Users.Remove(user);
             await _context.SaveChangesAsync();
         }

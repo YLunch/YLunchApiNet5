@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using YLunch.Api.Core;
 using YLunch.Application.Exceptions;
+using YLunch.Domain.DTO.UserModels;
 using YLunch.Domain.ModelsAggregate.UserAggregate;
 using YLunch.Domain.ModelsAggregate.UserAggregate.Roles;
 using YLunch.Domain.Repositories;
@@ -32,8 +33,8 @@ namespace YLunch.Api.Controllers
 
 
         [HttpGet("{customerId}")]
-        [Core.Authorize(Roles = UserRoles.RestaurantAdmin + "," + UserRoles.Employee)]
-        public async Task<IActionResult> GetCustomerDetails(string customerId)
+        [Core.Authorize(Roles = UserRoles.SuperAdmin + "," + UserRoles.RestaurantAdmin + "," + UserRoles.Employee)]
+        public async Task<ActionResult<UserAsCustomerDetailsReadDto>> GetCustomerDetails(string customerId)
         {
             try
             {

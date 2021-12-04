@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
+using YLunch.Api.Core;
 using YLunch.Api.Core.Response.Errors;
 using YLunch.Domain.DTO.UserModels;
 using YLunch.Domain.ModelsAggregate.UserAggregate;
@@ -35,7 +36,7 @@ namespace YLunch.Api.Controllers
 
         [HttpPost]
         [AllowAnonymous]
-        public async Task<IActionResult> Login([FromBody] UserLoginDto model)
+        public async Task<ActionResult<TokenReadDto>> Login([FromBody] UserLoginDto model)
         {
             var user = await _userManager.FindByNameAsync(model.Username);
             if (user == null || !await _userManager.CheckPasswordAsync(user, model.Password)) return Unauthorized();
@@ -60,10 +61,10 @@ namespace YLunch.Api.Controllers
                 signingCredentials: new SigningCredentials(authSigningKey, SecurityAlgorithms.HmacSha256)
             );
 
-            return Ok(new
+            return Ok(new TokenReadDto
             {
-                token = new JwtSecurityTokenHandler().WriteToken(token),
-                expiration = token.ValidTo
+                Token = new JwtSecurityTokenHandler().WriteToken(token),
+                Expiration = token.ValidTo
             });
         }
 
