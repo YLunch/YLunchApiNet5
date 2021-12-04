@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -37,7 +38,7 @@ namespace YLunch.Api.Controllers
 
         [HttpPost]
         [Authorize(Roles = UserRoles.RestaurantAdmin)]
-        public async Task<IActionResult> Create([FromBody] RestaurantProductCreationDto model)
+        public async Task<ActionResult<RestaurantProductReadDto>> Create([FromBody] RestaurantProductCreationDto model)
         {
             var currentUser = await GetAuthenticatedUser();
 
@@ -53,7 +54,7 @@ namespace YLunch.Api.Controllers
 
         [HttpPatch("{restaurantProductId}")]
         [Authorize(Roles = UserRoles.SuperAdmin + "," + UserRoles.RestaurantAdmin)]
-        public async Task<IActionResult> Update(
+        public async Task<ActionResult<RestaurantProductReadDto>> Update(
             [FromRoute] string restaurantProductId,
             [FromBody] RestaurantProductModificationDto model
         )
@@ -85,17 +86,16 @@ namespace YLunch.Api.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = UserRoles.SuperAdmin + "," + UserRoles.RestaurantAdmin)]
-        public async Task<IActionResult> GetAll(
+        [Authorize(Roles = UserRoles.RestaurantAdmin)]
+        public async Task<ActionResult<ICollection<RestaurantProductReadDto>>> GetAll(
             [FromQuery] int? quantityMin,
             [FromQuery] int? quantityMax,
             [FromQuery] bool? isActive
         )
         {
             var currentUser = await GetAuthenticatedUser();
-            var isCurrentUserSuperAdmin = await IsCurrentUserSuperAdmin();
 
-            if (!isCurrentUserSuperAdmin && !currentUser.HasARestaurant)
+            if (!currentUser.HasARestaurant)
                 return StatusCode(
                     StatusCodes.Status403Forbidden,
                     "User has not a restaurant"
@@ -116,7 +116,7 @@ namespace YLunch.Api.Controllers
 
         [HttpGet("{restaurantProductId}")]
         [Authorize(Roles = UserRoles.SuperAdmin + "," + UserRoles.RestaurantAdmin)]
-        public async Task<IActionResult> Get(string restaurantProductId)
+        public async Task<ActionResult<RestaurantProductReadDto>> Get(string restaurantProductId)
         {
             var currentUser = await GetAuthenticatedUser();
             var isCurrentUserSuperAdmin = await IsCurrentUserSuperAdmin();

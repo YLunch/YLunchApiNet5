@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
@@ -36,7 +37,7 @@ namespace YLunch.Api.Controllers
 
         [HttpPost]
         [Authorize(Roles = UserRoles.Customer)]
-        public async Task<IActionResult> Create([FromBody] OrderCreationDto orderCreationDto)
+        public async Task<ActionResult<OrderReadDto>> Create([FromBody] OrderCreationDto orderCreationDto)
         {
             try
             {
@@ -56,7 +57,7 @@ namespace YLunch.Api.Controllers
 
         [HttpPost("statuses")]
         [Authorize(Roles = UserRoles.RestaurantAdmin + "," + UserRoles.Employee)]
-        public async Task<IActionResult> AddStatusToMultipleOrders(
+        public async Task<ActionResult<ICollection<OrderReadDto>>> AddStatusToMultipleOrders(
             [FromBody] AddOrderStatusToMultipleOrdersDto addOrderStatusToMultipleOrdersDto)
         {
             try
@@ -77,7 +78,7 @@ namespace YLunch.Api.Controllers
 
         [HttpGet]
         [Authorize(Roles = UserRoles.SuperAdmin + "," + UserRoles.RestaurantAdmin + "," + UserRoles.Employee)]
-        public async Task<IActionResult> GetOrders([FromQuery] OrderState? status, [FromQuery] DateTime? afterDateTime,
+        public async Task<ActionResult<ICollection<OrderReadDto>>> GetOrders([FromQuery] OrderState? status, [FromQuery] DateTime? afterDateTime,
             [FromQuery] string restaurantId)
         {
             var currentUser = await GetAuthenticatedUser();

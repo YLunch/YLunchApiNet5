@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
@@ -41,7 +42,7 @@ namespace YLunch.Api.Controllers
 
         [HttpPost]
         [Core.Authorize(Roles = UserRoles.RestaurantAdmin)]
-        public async Task<IActionResult> Create([FromBody] RestaurantCreationDto model)
+        public async Task<ActionResult<RestaurantReadDto>> Create([FromBody] RestaurantCreationDto model)
         {
             try
             {
@@ -68,7 +69,8 @@ namespace YLunch.Api.Controllers
 
         [HttpPatch("{id}")]
         [Core.Authorize(Roles = UserRoles.RestaurantAdmin)]
-        public async Task<IActionResult> Update([FromRoute] string id, [FromBody] RestaurantModificationDto model)
+        public async Task<ActionResult<RestaurantReadDto>> Update([FromRoute] string id,
+            [FromBody] RestaurantModificationDto model)
         {
             if (id != model.Id)
             {
@@ -110,7 +112,7 @@ namespace YLunch.Api.Controllers
 
         [HttpGet]
         [AllowAnonymous]
-        public async Task<IActionResult> GetAll([FromQuery] bool? isPublic)
+        public async Task<ActionResult<ICollection<RestaurantReadDto>>> GetAll([FromQuery] bool? isPublic)
         {
             var restaurantsFilter = new RestaurantsFilter { IsPublished = isPublic };
             return Ok(await IsCurrentUserSuperAdmin()
@@ -120,7 +122,7 @@ namespace YLunch.Api.Controllers
 
         [HttpGet("{id}")]
         [AllowAnonymous]
-        public async Task<IActionResult> Get(string id)
+        public async Task<ActionResult<RestaurantReadDto>> Get(string id)
         {
             try
             {
@@ -137,7 +139,7 @@ namespace YLunch.Api.Controllers
 
         [HttpGet("mine")]
         [Core.Authorize(Roles = UserRoles.RestaurantAdmin)]
-        public async Task<IActionResult> Get()
+        public async Task<ActionResult<RestaurantReadDto>> Get()
         {
             try
             {
@@ -173,7 +175,7 @@ namespace YLunch.Api.Controllers
             return NoContent();
         }
 
-        [HttpPost("{restaurantId}")]
+        [HttpPost("{restaurantId}/restaurant-products")]
         [Authorize(Roles = UserRoles.SuperAdmin)]
         public async Task<IActionResult> CreateProduct(
             [FromRoute] string restaurantId,
@@ -193,7 +195,7 @@ namespace YLunch.Api.Controllers
 
         [AllowAnonymous]
         [HttpGet("{restaurantId}/restaurant-products")]
-        public async Task<IActionResult> GetProducts(
+        public async Task<ActionResult<ICollection<RestaurantProductReadDto>>> GetProducts(
             [FromRoute] string restaurantId,
             [FromQuery] int? quantityMin,
             [FromQuery] int? quantityMax,
@@ -204,7 +206,7 @@ namespace YLunch.Api.Controllers
             {
                 QuantityMin = quantityMin,
                 QuantityMax = quantityMax,
-                IsActive = isActive,
+                IsActive = await IsCurrentUserSuperAdmin() ? isActive : true,
                 RestaurantId = restaurantId
             };
             var restaurantProducts =
@@ -215,11 +217,12 @@ namespace YLunch.Api.Controllers
 
         [AllowAnonymous]
         [HttpGet("{restaurantId}/restaurant-products/{restaurantProductId}")]
-        public async Task<IActionResult> GetProduct(string restaurantId, string restaurantProductId)
+        public async Task<ActionResult<RestaurantProductReadDto>> GetProduct(string restaurantId,
+            string restaurantProductId)
         {
             var restaurantProduct =
                 await _restaurantProductService.GetById(restaurantProductId);
-            if (restaurantProduct == null)
+            if (!await IsCurrentUserSuperAdmin() && restaurantProduct.IsActive != true)
             {
                 return StatusCode(
                     StatusCodes.Status404NotFound,
