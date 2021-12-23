@@ -222,7 +222,7 @@ namespace YLunch.Api.Controllers
         {
             var restaurantProduct =
                 await _restaurantProductService.GetById(restaurantProductId);
-            if (!await IsCurrentUserSuperAdmin() && restaurantProduct.IsActive != true)
+            if (!await IsCurrentUserSuperAdmin() && !restaurantProduct.IsActive)
             {
                 return StatusCode(
                     StatusCodes.Status404NotFound,
